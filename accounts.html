@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts - NeoBank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .filter-bar {
+            display: flex; gap: 1rem; margin-bottom: 1.5rem;
+            align-items: center; justify-content: space-between;
+        }
+        
+        .filter-group { display: flex; gap: 0.5rem; }
+        
+        .filter-btn {
+            background: var(--surface-dark); border: 1px solid var(--surface-border);
+            padding: 0.5rem 1rem; border-radius: 20px; color: var(--text-muted);
+            cursor: pointer; font-size: 0.875rem; transition: all var(--transition-fast);
+        }
+        
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--primary-color); color: white; border-color: var(--primary-color);
+        }
+
+        .txn-list-full {
+            background: var(--bg-dark); border: 1px solid var(--surface-border);
+            border-radius: 16px; overflow: hidden;
+        }
+
+        .txn-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 1.5rem; border-bottom: 1px solid var(--surface-border);
+        }
+
+        .txn-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i data-lucide="zap"></i> NeoBank
+            </div>
+            <ul class="nav-links">
+                <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+                <li><a href="accounts.html" class="active"><i data-lucide="wallet"></i> Accounts</a></li>
+                <li><a href="cards.html"><i data-lucide="credit-card"></i> Cards</a></li>
+                <li><a href="payments.html"><i data-lucide="send"></i> Payments</a></li>
+                <li><a href="profile.html"><i data-lucide="user"></i> Profile</a></li>
+                <li style="margin-top: 2rem;"><a href="#" onclick="logout()"><i data-lucide="log-out"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <button class="menu-toggle" id="menu-toggle"><i data-lucide="menu"></i></button>
+                <h1 class="page-title fade-in">Account Statement</h1>
+            </header>
+
+            <div class="fade-in">
+                <!-- Summary -->
+                <div class="glass" style="padding: 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div class="text-muted" style="margin-bottom: 0.5rem;">Current Balance</div>
+                        <div style="font-size: 2rem; font-weight: 700;" id="acc-balance">...</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="downloadStatement()">
+                        <i data-lucide="download"></i> Download PDF
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <button class="filter-btn active" onclick="filterTxs('all', this)">All</button>
+                        <button class="filter-btn" onclick="filterTxs('credit', this)">Credits</button>
+                        <button class="filter-btn" onclick="filterTxs('debit', this)">Debits</button>
+                    </div>
+                </div>
+
+                <!-- Txn List -->
+                <div class="txn-list-full" id="acc-txns">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/accounts.js"></script>
+    <script>
+        lucide.createIcons();
+        function logout() { localStorage.setItem('isLoggedIn', 'false'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>

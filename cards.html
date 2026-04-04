@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cards - NeoBank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .cards-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .credit-card {
+            background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+            border-radius: 20px; padding: 2rem;
+            color: white; box-shadow: 0 15px 35px rgba(79, 70, 229, 0.3);
+            position: relative; overflow: hidden;
+            width: 100%; max-width: 400px;
+            aspect-ratio: 1.586;
+            display: flex; flex-direction: column; justify-content: space-between;
+            transition: transform var(--transition-normal);
+        }
+
+        .credit-card.blocked {
+            background: linear-gradient(135deg, #ef4444, #991b1b);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+        }
+        
+        .credit-card.blocked::before {
+            content: "BLOCKED";
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 3rem; font-weight: 800; opacity: 0.1;
+            letter-spacing: 5px; color: white;
+        }
+
+        .card-chip {
+            width: 45px; height: 35px; background: rgba(255,255,255,0.8);
+            border-radius: 6px; position: relative; overflow: hidden;
+        }
+
+        .card-chip::after {
+            content: ''; position: absolute; top:0; left:0; right:0; bottom:0;
+            background: linear-gradient(135deg, transparent 40%, rgba(0,0,0,0.1) 50%, transparent 60%);
+        }
+
+        .card-number {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.5rem; letter-spacing: 2px; margin-top: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .card-footer { display: flex; justify-content: space-between; align-items: flex-end; }
+        .card-holder { font-size: 1rem; text-transform: uppercase; font-weight: 500; }
+        .card-expiry { font-size: 0.875rem; }
+
+        .controls-panel {
+            background: var(--surface-dark); border: 1px solid var(--surface-border);
+            border-radius: 16px; padding: 1.5rem;
+        }
+
+        .setting-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 0; border-bottom: 1px solid var(--surface-border);
+        }
+        .setting-item:last-child { border-bottom: none; }
+
+        .setting-info h4 { margin-bottom: 0.25rem; font-weight: 500; }
+        .setting-info p { font-size: 0.875rem; color: var(--text-muted); }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative; display: inline-block; width: 44px; height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-dark); transition: .4s; border-radius: 24px;
+            border: 1px solid var(--surface-border);
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary-color); border-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        input[type=range] {
+            width: 100%; margin-top: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .cards-layout { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i data-lucide="zap"></i> NeoBank
+            </div>
+            <ul class="nav-links">
+                <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+                <li><a href="accounts.html"><i data-lucide="wallet"></i> Accounts</a></li>
+                <li><a href="cards.html" class="active"><i data-lucide="credit-card"></i> Cards</a></li>
+                <li><a href="payments.html"><i data-lucide="send"></i> Payments</a></li>
+                <li><a href="profile.html"><i data-lucide="user"></i> Profile</a></li>
+                <li style="margin-top: 2rem;"><a href="#" onclick="logout()"><i data-lucide="log-out"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <button class="menu-toggle" id="menu-toggle"><i data-lucide="menu"></i></button>
+                <h1 class="page-title fade-in">Manage Cards</h1>
+            </header>
+
+            <div class="cards-layout fade-in">
+                <!-- Card Display -->
+                <div style="display: flex; justify-content: center; align-items: flex-start;">
+                    <div class="credit-card" id="credit-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="card-chip"></div>
+                            <i data-lucide="wifi" style="transform: rotate(90deg);"></i>
+                        </div>
+                        <div class="card-number">4532  ••••  ••••  2389</div>
+                        <div class="card-footer">
+                            <div class="card-holder" id="card-holder-name">John Doe</div>
+                            <div class="card-expiry">
+                                <div style="font-size:0.6rem; opacity:0.8;">VALID THRU</div>
+                                12/28
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls-panel">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Freeze Card</h4>
+                            <p>Temporarily disable your card</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-block">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>International Usage</h4>
+                            <p>Enable for cross-border transactions</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-intl">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item" style="flex-direction: column; align-items: flex-start;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 1rem;">
+                            <div class="setting-info">
+                                <h4>Monthly Spending Limit ($)</h4>
+                                <p>Set a cap on monthly card usage</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 1rem; width: 100%;">
+                            <input type="number" class="form-control" id="limit-input" value="5000" style="flex: 1;">
+                            <button class="btn btn-primary" id="btn-save-limit">Save Limit</button>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/cards.js"></script>
+    <script>
+        lucide.createIcons();
+        function logout() { localStorage.setItem('isLoggedIn', 'false'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>
