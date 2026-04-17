@@ -159,6 +159,11 @@
         const passwordInput = document.getElementById('password');
         const googleBtn = document.getElementById('google-login-btn');
 
+        // Create a dedicated local instance exactly where and when we need it
+        const SUPABASE_URL = 'https://ozpfohheqvaxmzzrujuj.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96cGZvaGhlcXZheG16enJ1anVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTU4NDIsImV4cCI6MjA5MTk3MTg0Mn0.77C7H8PLBXNuvad_AETmuwYra-9Na8msuazERSdkkMU';
+        const localSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -172,12 +177,12 @@
 
             let result;
             if (isSignup) {
-                result = await window.supabaseClient.auth.signUp({
+                result = await localSupabase.auth.signUp({
                     email,
                     password
                 });
             } else {
-                result = await window.supabaseClient.auth.signInWithPassword({
+                result = await localSupabase.auth.signInWithPassword({
                     email,
                     password
                 });
@@ -215,7 +220,7 @@
                      redirectUrl = redirectUrl + 'dashboard.html';
                  }
                  
-                 const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+                 const { data, error } = await localSupabase.auth.signInWithOAuth({
                      provider: 'google',
                      options: {
                          redirectTo: redirectUrl
