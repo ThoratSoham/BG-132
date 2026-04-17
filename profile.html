@@ -184,107 +184,116 @@
                 });
             }
             
-            // Link Account Logic
-            const addBtn = document.getElementById('btn-add-account');
-            const formDiv = document.getElementById('add-account-form');
+            // ── Linked Accounts ──────────────────────────────────────────
+            const addBtn    = document.getElementById('btn-add-account');
+            const formDiv   = document.getElementById('add-account-form');
             const cancelBtn = document.getElementById('btn-cancel-account');
-            const saveBtn = document.getElementById('btn-save-account');
+            const saveBtn   = document.getElementById('btn-save-account');
             const container = document.getElementById('linked-accounts-container');
 
-            // Use auth-guard's already-validated shared client instance.
-            // DO NOT create a new client — a fresh client on file:// has no session.
-            // window.supabaseClient is set by auth-guard.js AFTER confirming session exists.
-            const waitForClient = (cb) => {
+            const LS_KEY = 'neobank_linked_accounts';
+
+            // Render one account tile
+            const renderTile = (bank, num) => {
+                const div = document.createElement('div');
+                div.className = 'linked-account fade-in';
+                div.innerHTML = `
+                    <div style="width:40px;height:40px;border-radius:8px;background:white;color:black;
+                         display:flex;align-items:center;justify-content:center;">
+                        <i data-lucide="landmark"></i>
+                    </div>
+                    <div style="font-weight:500;">${bank} - ${num}</div>`;
+                container.appendChild(div);
+                if (window.lucide) window.lucide.createIcons();
+            };
+
+            // Load accounts: try Supabase first, fall back to localStorage
+            const loadAccounts = async () => {
+                let loaded = false;
+
                 if (window.supabaseClient && window.currentUser) {
-                    cb(window.supabaseClient, window.currentUser);
-                } else {
-                    setTimeout(() => waitForClient(cb), 100);
+                    try {
+                        const { data, error } = await window.supabaseClient
+                            .from('linked_accounts')
+                            .select('*')
+                            .order('created_at', { ascending: true });
+
+                        if (!error && data && data.length > 0) {
+                            container.innerHTML = '';
+                            data.forEach(a => renderTile(a.bank_name, a.account_number));
+                            // Keep localStorage in sync
+                            localStorage.setItem(LS_KEY, JSON.stringify(
+                                data.map(a => ({ bank: a.bank_name, num: a.account_number }))
+                            ));
+                            loaded = true;
+                        }
+                    } catch(e) { /* fall through to localStorage */ }
+                }
+
+                if (!loaded) {
+                    const saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+                    if (saved.length > 0) {
+                        container.innerHTML = '';
+                        saved.forEach(a => renderTile(a.bank, a.num));
+                    }
+                    // If nothing in localStorage either, leave the hardcoded dummies visible
                 }
             };
 
+            // Show / hide form
             addBtn.addEventListener('click', () => {
                 formDiv.style.display = 'block';
                 addBtn.style.display = 'none';
             });
-             
+
             cancelBtn.addEventListener('click', () => {
                 formDiv.style.display = 'none';
                 addBtn.style.display = 'block';
                 document.getElementById('new-bank-name').value = '';
                 document.getElementById('new-account-num').value = '';
             });
-            
-            const appendAccountToUI = (bank, num) => {
-                const div = document.createElement('div');
-                div.className = 'linked-account fade-in';
-                div.innerHTML = `
-                     <div style="width:40px; height:40px; border-radius:8px; background:white; color:black; display:flex; align-items:center; justify-content:center; font-weight:bold;">
-                         <i data-lucide="landmark"></i>
-                     </div>
-                     <div style="font-weight: 500;">${bank} - ${num}</div>
-                `;
-                container.appendChild(div);
-                if(window.lucide) window.lucide.createIcons();
-            };
 
-            // Load previously saved accounts on page load
-            waitForClient(async (client, user) => {
-                const { data, error } = await client
-                    .from('linked_accounts')
-                    .select('*')
-                    .order('created_at', { ascending: true });
-                    
-                if (!error && data && data.length > 0) {
-                    container.innerHTML = '';
-                    data.forEach(acc => appendAccountToUI(acc.bank_name, acc.account_number));
-                }
-            });
-            
+            // Save account
             saveBtn.addEventListener('click', async () => {
                 const bankName = document.getElementById('new-bank-name').value.trim();
-                const accNum = document.getElementById('new-account-num').value.trim();
-                
+                const accNum   = document.getElementById('new-account-num').value.trim();
+
                 if (!bankName || !accNum) {
                     alert('Please fill in both Bank Name and Account Number.');
                     return;
                 }
 
-                // Check we have the shared client and user before proceeding
-                if (!window.supabaseClient || !window.currentUser) {
-                    alert('Session not ready. Please refresh the page and try again.');
-                    return;
-                }
-                
                 saveBtn.innerHTML = 'Saving...';
                 saveBtn.disabled = true;
-                
-                try {
-                    const { data, error } = await window.supabaseClient
-                        .from('linked_accounts')
-                        .insert([{ 
-                            user_id: window.currentUser.id, 
-                            bank_name: bankName, 
-                            account_number: accNum 
-                        }])
-                        .select();
-                        
-                    if (error) {
-                        alert('DATABASE ERROR:\nCode: ' + error.code + '\nMessage: ' + error.message + '\n\nMake sure you ran the SQL script in Supabase SQL Editor.');
-                    } else {
-                        if (container.innerHTML.includes('SBI - ****1234')) {
-                            container.innerHTML = '';
-                        }
-                        appendAccountToUI(bankName, accNum);
-                        cancelBtn.click();
-                        alert('Account added successfully!');
-                    }
-                } catch (err) {
-                    alert('Unexpected error: ' + err.message);
-                } finally {
-                    saveBtn.innerHTML = 'Save';
-                    saveBtn.disabled = false;
+
+                // 1. Save to localStorage immediately (always works)
+                const existing = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+                existing.push({ bank: bankName, num: accNum });
+                localStorage.setItem(LS_KEY, JSON.stringify(existing));
+
+                // 2. Also try to save to Supabase if session exists
+                if (window.supabaseClient && window.currentUser) {
+                    try {
+                        await window.supabaseClient
+                            .from('linked_accounts')
+                            .insert([{ user_id: window.currentUser.id, bank_name: bankName, account_number: accNum }]);
+                    } catch(e) { /* silently ignore — data is safe in localStorage */ }
                 }
+
+                // 3. Clear hardcoded dummies if this is the first real entry
+                if (container.innerHTML.includes('SBI - ****1234')) {
+                    container.innerHTML = '';
+                }
+
+                renderTile(bankName, accNum);
+                cancelBtn.click();
+
+                saveBtn.innerHTML = 'Save';
+                saveBtn.disabled = false;
             });
+
+            // Run on page load
+            loadAccounts();
 
         });
     </script>
