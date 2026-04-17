@@ -9,12 +9,39 @@ async function checkAuth() {
     const isAuthPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/');
     
     if (!session && !isAuthPage) {
-        // User is not logged in and trying to access a protected page
         window.location.href = 'index.html';
+        return;
     } else if (session && isAuthPage) {
-        // User is already logged in, skip login page
         window.location.href = 'dashboard.html';
+        return;
     }
+
+    if (session) {
+        displayUserProfile(session.user);
+    }
+}
+
+function displayUserProfile(user) {
+    // 1. Update Profile Page specifically
+    const profName = document.getElementById('prof-name');
+    const profEmail = document.getElementById('prof-email');
+    const profAvatar = document.getElementById('prof-avatar');
+    
+    // 2. Update Header (Dashboard, etc)
+    const headerWelcome = document.getElementById('header-welcome');
+    const headerAvatar = document.getElementById('header-avatar');
+
+    // Extract name from email or metadata
+    const userEmail = user.email;
+    const displayName = user.user_metadata?.full_name || userEmail.split('@')[0];
+    const initials = displayName.substring(0, 2).toUpperCase();
+
+    if (profName) profName.textContent = displayName;
+    if (profEmail) profEmail.textContent = userEmail;
+    if (profAvatar) profAvatar.textContent = initials;
+
+    if (headerWelcome) headerWelcome.textContent = `Hello, ${displayName.split(' ')[0]}`;
+    if (headerAvatar) headerAvatar.textContent = initials;
 }
 
 // Redirect logout globally

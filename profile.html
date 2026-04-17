@@ -245,36 +245,41 @@
                 saveBtn.innerHTML = 'Saving...';
                 saveBtn.disabled = true;
                 
-                const { data: { user }, error: userError } = await localSupabase.auth.getUser();
-                
-                if (userError || !user) {
-                     if(window.showToast) window.showToast('Authentication error: Not logged in', 'error');
-                     saveBtn.innerHTML = 'Save';
-                     saveBtn.disabled = false;
-                     return;
-                }
-                
-                const { data, error } = await localSupabase
-                    .from('linked_accounts')
-                    .insert([{ user_id: user.id, bank_name: bankName, account_number: accNum }])
-                    .select();
+                try {
+                    const { data: { user }, error: userError } = await localSupabase.auth.getUser();
                     
-                saveBtn.innerHTML = 'Save';
-                saveBtn.disabled = false;
-                
-                if (error) {
-                    alert('Database Error: ' + error.message + '\n\nHint: Ensure you ran the SQL script in Supabase dashboard to create the table.');
-                    console.error(error);
-                } else {
-                    if(window.showToast) window.showToast('Account added safely!', 'success');
-                    
-                    // If this is the FIRST item created, clear the hardcoded dummies out
-                    if (container.innerHTML.includes('SBI - ****1234')) {
-                        container.innerHTML = '';
+                    if (userError || !user) {
+                         if(window.showToast) window.showToast('Authentication error: Not logged in', 'error');
+                         saveBtn.innerHTML = 'Save';
+                         saveBtn.disabled = false;
+                         return;
                     }
                     
-                    appendAccountToUI(bankName, accNum);
-                    cancelBtn.click(); // Close and reset form
+                    const { data, error } = await localSupabase
+                        .from('linked_accounts')
+                        .insert([{ user_id: user.id, bank_name: bankName, account_number: accNum }])
+                        .select();
+                        
+                    if (error) {
+                        alert('Database Error: ' + error.message + '\n\nHint: Ensure you ran the SQL script in Supabase dashboard to create the table.');
+                        console.error(error);
+                    } else {
+                        if(window.showToast) window.showToast('Account added safely!', 'success');
+                        
+                        // If this is the FIRST item created, clear the hardcoded dummies out
+                        if (container.innerHTML.includes('SBI - ****1234')) {
+                            container.innerHTML = '';
+                        }
+                        
+                        appendAccountToUI(bankName, accNum);
+                        cancelBtn.click(); // Close and reset form
+                    }
+                } catch (err) {
+                    alert('An unexpected error occurred: ' + err.message);
+                    console.error(err);
+                } finally {
+                    saveBtn.innerHTML = 'Save';
+                    saveBtn.disabled = false;
                 }
             });
             
