@@ -314,12 +314,20 @@
 
     <script src="js/app.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        const initDashboard = () => {
             const balanceEl = document.getElementById('db-balance');
             if (balanceEl) {
                 balanceEl.innerText = '$' + window.getBalance().toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
             window.renderTransactions('db-txns');
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.authReady) {
+                initDashboard();
+            } else {
+                window.onAuthReady = initDashboard;
+            }
         });
 
         lucide.createIcons();

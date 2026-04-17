@@ -20,6 +20,12 @@ async function checkAuth() {
         window.currentUser = session.user;
         displayUserProfile(session.user);
     }
+
+    // Notify application that auth state is resolved
+    window.authReady = true;
+    if (typeof window.onAuthReady === 'function') {
+        window.onAuthReady();
+    }
 }
 
 function displayUserProfile(user) {
@@ -76,9 +82,9 @@ async function logout(e) {
         console.warn("Storage wipe error:", err);
     }
 
-    // 3. Trigger network signout cleanly, don't block redirection on it
+    // 3. Trigger network signout cleanly and wait for it
     if (window.supabaseClient && window.supabaseClient.auth) {
-        window.supabaseClient.auth.signOut().catch(err => console.warn("Signout disconnect error:", err));
+        await window.supabaseClient.auth.signOut().catch(err => console.warn("Signout disconnect error:", err));
     }
 
     console.log("State destroyed. Redirection triggering.");

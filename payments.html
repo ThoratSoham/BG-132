@@ -454,8 +454,16 @@
             });
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
+        const initPayments = () => {
             window.renderTransactions('pay-txns', 5);
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.authReady) {
+                initPayments();
+            } else {
+                window.onAuthReady = initPayments;
+            }
         });
     </script>
 </body>

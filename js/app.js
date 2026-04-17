@@ -74,17 +74,20 @@ window.formatDate = function (dateStr) {
   return date.toLocaleDateString('en-US', options);
 };
 
+window.getStorageKey = function(baseKey) {
+  return window.currentUser ? `${baseKey}_${window.currentUser.id}` : baseKey;
+};
+
 // State Management
 window.getTransactions = function () {
   const defaultTxns = [
-    { id: 't1', title: 'Amazon Purchase', date: new Date(new Date().getTime() - 86400000).toISOString(), amount: 120.50, type: 'debit', icon: 'shopping-bag' },
-    { id: 't2', title: 'Tech Corp Inc.', date: new Date(new Date().getTime() - 172800000).toISOString(), amount: 4500.00, type: 'credit', icon: 'arrow-down-left' },
-    { id: 't3', title: 'Starbucks', date: new Date(new Date().getTime() - 259200000).toISOString(), amount: 35.00, type: 'debit', icon: 'coffee' }
+    { id: 't1', title: 'Initial Deposit', date: new Date().toISOString(), amount: 1000.00, type: 'credit', icon: 'arrow-down-left' }
   ];
-  let txns = JSON.parse(localStorage.getItem('transactions'));
+  const key = window.getStorageKey('transactions');
+  let txns = JSON.parse(localStorage.getItem(key));
   if (!txns) {
     txns = defaultTxns;
-    localStorage.setItem('transactions', JSON.stringify(txns));
+    localStorage.setItem(key, JSON.stringify(txns));
   }
   return txns;
 };
@@ -92,14 +95,15 @@ window.getTransactions = function () {
 window.addTransaction = function (txn) {
   const txns = window.getTransactions();
   txns.unshift(txn);
-  localStorage.setItem('transactions', JSON.stringify(txns));
+  localStorage.setItem(window.getStorageKey('transactions'), JSON.stringify(txns));
 };
 
 window.getBalance = function () {
-  let bal = localStorage.getItem('balance');
+  const key = window.getStorageKey('balance');
+  let bal = localStorage.getItem(key);
   if (!bal) {
-    bal = 14502.50;
-    localStorage.setItem('balance', bal.toString());
+    bal = 1000.00; // Starting new balance for a specific user
+    localStorage.setItem(key, bal.toString());
   }
   return parseFloat(bal);
 };
@@ -108,7 +112,7 @@ window.updateBalance = function (amount, type) {
   let bal = window.getBalance();
   if (type === 'credit') bal += parseFloat(amount);
   else if (type === 'debit') bal -= parseFloat(amount);
-  localStorage.setItem('balance', bal.toString());
+  localStorage.setItem(window.getStorageKey('balance'), bal.toString());
   return bal;
 };
 
