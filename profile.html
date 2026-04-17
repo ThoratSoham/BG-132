@@ -191,10 +191,16 @@
             const saveBtn = document.getElementById('btn-save-account');
             const container = document.getElementById('linked-accounts-container');
 
-            // Self-contained client — no dependency on auth-guard globalshared state
-            const SB_URL = 'https://ozpfohheqvaxmzzrujuj.supabase.co';
-            const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96cGZvaGhlcXZheG16enJ1anVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTU4NDIsImV4cCI6MjA5MTk3MTg0Mn0.77C7H8PLBXNuvad_AETmuwYra-9Na8msuazERSdkkMU';
-            const sb = window.supabase.createClient(SB_URL, SB_KEY);
+            // Use auth-guard's already-validated shared client instance.
+            // DO NOT create a new client — a fresh client on file:// has no session.
+            // window.supabaseClient is set by auth-guard.js AFTER confirming session exists.
+            const waitForClient = (cb) => {
+                if (window.supabaseClient && window.currentUser) {
+                    cb(window.supabaseClient, window.currentUser);
+                } else {
+                    setTimeout(() => waitForClient(cb), 100);
+                }
+            };
 
             addBtn.addEventListener('click', () => {
                 formDiv.style.display = 'block';
@@ -220,12 +226,10 @@
                 container.appendChild(div);
                 if(window.lucide) window.lucide.createIcons();
             };
-             
-            const loadAccounts = async () => {
-                const { data: { session } } = await sb.auth.getSession();
-                if (!session) return;
-                
-                const { data, error } = await sb
+
+            // Load previously saved accounts on page load
+            waitForClient(async (client, user) => {
+                const { data, error } = await client
                     .from('linked_accounts')
                     .select('*')
                     .order('created_at', { ascending: true });
@@ -234,7 +238,7 @@
                     container.innerHTML = '';
                     data.forEach(acc => appendAccountToUI(acc.bank_name, acc.account_number));
                 }
-            };
+            });
             
             saveBtn.addEventListener('click', async () => {
                 const bankName = document.getElementById('new-bank-name').value.trim();
@@ -244,36 +248,28 @@
                     alert('Please fill in both Bank Name and Account Number.');
                     return;
                 }
+
+                // Check we have the shared client and user before proceeding
+                if (!window.supabaseClient || !window.currentUser) {
+                    alert('Session not ready. Please refresh the page and try again.');
+                    return;
+                }
                 
                 saveBtn.innerHTML = 'Saving...';
                 saveBtn.disabled = true;
                 
                 try {
-                    // DIAGNOSTIC: Show what we know
-                    const sessionResult = await sb.auth.getSession();
-                    const session = sessionResult?.data?.session;
-                    const sessionError = sessionResult?.error;
-                    
-                    if (sessionError) {
-                        alert('SESSION ERROR:\n' + sessionError.message);
-                        return;
-                    }
-                    
-                    if (!session) {
-                        // Check localStorage for clues
-                        const lsKeys = Object.keys(localStorage).filter(k => k.includes('sb-') || k.includes('supabase'));
-                        alert('No session found.\n\nLocalStorage keys found: ' + (lsKeys.length > 0 ? lsKeys.join(', ') : 'NONE') + '\n\nThis means you are not logged in. Please log out and log back in.');
-                        return;
-                    }
-                    
-                    // Session found — try inserting
-                    const { data, error } = await sb
+                    const { data, error } = await window.supabaseClient
                         .from('linked_accounts')
-                        .insert([{ user_id: session.user.id, bank_name: bankName, account_number: accNum }])
+                        .insert([{ 
+                            user_id: window.currentUser.id, 
+                            bank_name: bankName, 
+                            account_number: accNum 
+                        }])
                         .select();
                         
                     if (error) {
-                        alert('DATABASE ERROR:\nCode: ' + error.code + '\nMessage: ' + error.message + '\nDetails: ' + error.details + '\n\nHint: ' + error.hint);
+                        alert('DATABASE ERROR:\nCode: ' + error.code + '\nMessage: ' + error.message + '\n\nMake sure you ran the SQL script in Supabase SQL Editor.');
                     } else {
                         if (container.innerHTML.includes('SBI - ****1234')) {
                             container.innerHTML = '';
@@ -283,15 +279,13 @@
                         alert('Account added successfully!');
                     }
                 } catch (err) {
-                    alert('UNEXPECTED EXCEPTION:\n' + err.message + '\n\nStack: ' + err.stack);
+                    alert('Unexpected error: ' + err.message);
                 } finally {
                     saveBtn.innerHTML = 'Save';
                     saveBtn.disabled = false;
                 }
             });
-            
-            // Load saved accounts on page load
-            loadAccounts();
+
         });
     </script>
 </body>
