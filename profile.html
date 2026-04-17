@@ -44,7 +44,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/auth-guard.js"></script>
+    <script src="js/auth-guard.js?v=3"></script>
 </head>
 <body>
 
@@ -180,6 +180,11 @@
             const cancelBtn = document.getElementById('btn-cancel-account');
             const saveBtn = document.getElementById('btn-save-account');
             const container = document.getElementById('linked-accounts-container');
+
+            // Creating a local instance for maximum reliability (same as index.html)
+            const SUPABASE_URL = 'https://ozpfohheqvaxmzzrujuj.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96cGZvaGhlcXZheG16enJ1anVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTU4NDIsImV4cCI6MjA5MTk3MTg0Mn0.77C7H8PLBXNuvad_AETmuwYra-9Na8msuazERSdkkMU';
+            const localSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
              
             addBtn.addEventListener('click', () => {
                 formDiv.style.display = 'block';
@@ -207,11 +212,10 @@
             };
              
             const loadAccounts = async () => {
-                if (!window.supabaseClient) return;
-                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                const { data: { user } } = await localSupabase.auth.getUser();
                 if (!user) return;
                 
-                const { data, error } = await window.supabaseClient
+                const { data, error } = await localSupabase
                     .from('linked_accounts')
                     .select('*')
                     .order('created_at', { ascending: true });
@@ -223,6 +227,8 @@
                     data.forEach(acc => {
                         appendAccountToUI(acc.bank_name, acc.account_number);
                     });
+                } else if (error) {
+                    console.error('Fetch error:', error);
                 }
             };
             
@@ -239,16 +245,16 @@
                 saveBtn.innerHTML = 'Saving...';
                 saveBtn.disabled = true;
                 
-                const { data: { user }, error: userError } = await window.supabaseClient.auth.getUser();
+                const { data: { user }, error: userError } = await localSupabase.auth.getUser();
                 
                 if (userError || !user) {
-                     if(window.showToast) window.showToast('Authentication error', 'error');
+                     if(window.showToast) window.showToast('Authentication error: Not logged in', 'error');
                      saveBtn.innerHTML = 'Save';
                      saveBtn.disabled = false;
                      return;
                 }
                 
-                const { data, error } = await window.supabaseClient
+                const { data, error } = await localSupabase
                     .from('linked_accounts')
                     .insert([{ user_id: user.id, bank_name: bankName, account_number: accNum }])
                     .select();
@@ -257,8 +263,7 @@
                 saveBtn.disabled = false;
                 
                 if (error) {
-                    if(window.showToast) window.showToast('Failed to connect to database. Did you run the SQL snippet?', 'error');
-                    else alert('Database Error: ' + error.message);
+                    alert('Database Error: ' + error.message + '\n\nHint: Ensure you ran the SQL script in Supabase dashboard to create the table.');
                     console.error(error);
                 } else {
                     if(window.showToast) window.showToast('Account added safely!', 'success');
