@@ -101,9 +101,24 @@
                                 <div style="font-weight: 500;">HDFC - ****9876</div>
                             </div>
                         </div>
-                        <button class="btn btn-secondary btn-full">
+                        <button class="btn btn-secondary btn-full" id="btn-add-account">
                             + Add New Account
                         </button>
+                        
+                        <div id="add-account-form" style="display: none; margin-top: 1rem; border-top: 1px solid var(--surface-border); padding-top: 1rem;">
+                            <div class="form-group" style="margin-bottom: 0.5rem;">
+                                <label>Bank / Financial Institution</label>
+                                <input type="text" id="new-bank-name" class="form-control" placeholder="e.g. Chase Bank">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0.5rem;">
+                                <label>Card / Account Number</label>
+                                <input type="text" id="new-account-num" class="form-control" placeholder="e.g. **** 4321" maxlength="20">
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                <button class="btn btn-primary" style="flex: 1;" id="btn-save-account">Save</button>
+                                <button class="btn btn-secondary" style="flex: 1;" id="btn-cancel-account">Cancel</button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- App Preferences -->
@@ -158,9 +173,109 @@
                     document.documentElement.setAttribute('data-theme', selectedMode);
                 });
             }
+            
+            // Link Account Logic
+            const addBtn = document.getElementById('btn-add-account');
+            const formDiv = document.getElementById('add-account-form');
+            const cancelBtn = document.getElementById('btn-cancel-account');
+            const saveBtn = document.getElementById('btn-save-account');
+            const container = document.getElementById('linked-accounts-container');
+             
+            addBtn.addEventListener('click', () => {
+                formDiv.style.display = 'block';
+                addBtn.style.display = 'none';
+            });
+             
+            cancelBtn.addEventListener('click', () => {
+                formDiv.style.display = 'none';
+                addBtn.style.display = 'block';
+                document.getElementById('new-bank-name').value = '';
+                document.getElementById('new-account-num').value = '';
+            });
+            
+            const appendAccountToUI = (bank, num) => {
+                const div = document.createElement('div');
+                div.className = 'linked-account fade-in';
+                div.innerHTML = `
+                     <div style="width:40px; height:40px; border-radius:8px; background:white; color:black; display:flex; align-items:center; justify-content:center; font-weight:bold;">
+                         <i data-lucide="landmark"></i>
+                     </div>
+                     <div style="font-weight: 500;">${bank} - ${num}</div>
+                `;
+                container.appendChild(div);
+                if(window.lucide) window.lucide.createIcons();
+            };
+             
+            const loadAccounts = async () => {
+                if (!window.supabaseClient) return;
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                if (!user) return;
+                
+                const { data, error } = await window.supabaseClient
+                    .from('linked_accounts')
+                    .select('*')
+                    .order('created_at', { ascending: true });
+                    
+                if (!error && data) {
+                    if (data.length > 0) {
+                        container.innerHTML = ''; 
+                    }
+                    data.forEach(acc => {
+                        appendAccountToUI(acc.bank_name, acc.account_number);
+                    });
+                }
+            };
+            
+            saveBtn.addEventListener('click', async () => {
+                const bankName = document.getElementById('new-bank-name').value.trim();
+                const accNum = document.getElementById('new-account-num').value.trim();
+                
+                if (!bankName || !accNum) {
+                    if(window.showToast) window.showToast('Please fill all fields', 'warning');
+                    else alert('Please fill all fields');
+                    return;
+                }
+                
+                saveBtn.innerHTML = 'Saving...';
+                saveBtn.disabled = true;
+                
+                const { data: { user }, error: userError } = await window.supabaseClient.auth.getUser();
+                
+                if (userError || !user) {
+                     if(window.showToast) window.showToast('Authentication error', 'error');
+                     saveBtn.innerHTML = 'Save';
+                     saveBtn.disabled = false;
+                     return;
+                }
+                
+                const { data, error } = await window.supabaseClient
+                    .from('linked_accounts')
+                    .insert([{ user_id: user.id, bank_name: bankName, account_number: accNum }])
+                    .select();
+                    
+                saveBtn.innerHTML = 'Save';
+                saveBtn.disabled = false;
+                
+                if (error) {
+                    if(window.showToast) window.showToast('Failed to connect to database. Did you run the SQL snippet?', 'error');
+                    else alert('Database Error: ' + error.message);
+                    console.error(error);
+                } else {
+                    if(window.showToast) window.showToast('Account added safely!', 'success');
+                    
+                    // If this is the FIRST item created, clear the hardcoded dummies out
+                    if (container.innerHTML.includes('SBI - ****1234')) {
+                        container.innerHTML = '';
+                    }
+                    
+                    appendAccountToUI(bankName, accNum);
+                    cancelBtn.click(); // Close and reset form
+                }
+            });
+            
+            // Execute on load
+            loadAccounts();
         });
-
-
     </script>
 </body>
 </html>
