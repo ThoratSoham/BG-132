@@ -5,9 +5,9 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function checkAuth() {
     const { data: { session }, error } = await supabase.auth.getSession();
-    
+
     const isAuthPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/');
-    
+
     if (!session && !isAuthPage) {
         window.location.href = 'index.html';
         return;
@@ -28,7 +28,7 @@ function displayUserProfile(user) {
     const profEmail = document.getElementById('prof-email');
     const profAvatar = document.getElementById('prof-avatar');
     const profPhone = document.getElementById('prof-phone');
-    
+
     // 2. Update Header (Dashboard, etc)
     const headerWelcome = document.getElementById('header-welcome');
     const headerAvatar = document.getElementById('header-avatar');
@@ -51,12 +51,15 @@ function displayUserProfile(user) {
 window.displayUserProfile = displayUserProfile;
 
 // Redirect logout globally
-window.logout = async function() {
+window.logout = function (e) {
+    if (e) e.preventDefault();
+    if (window.event) window.event.preventDefault();
+
     try {
-        await supabase.auth.signOut();
-    } catch(e) {
-        // Ignore network errors — we still want to log out locally
-        console.warn('signOut network error (ignored):', e);
+        // Fire and forget, don't await so it doesn't block redirection
+        supabase.auth.signOut().catch(err => console.warn('signOut network error (ignored):', err));
+    } catch (err) {
+        console.warn('signOut error:', err);
     }
     // Always clear local state regardless
     window.currentUser = null;
