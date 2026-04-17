@@ -51,14 +51,17 @@ function displayUserProfile(user) {
 window.displayUserProfile = displayUserProfile;
 
 async function logout(e) {
-    if (e && e.preventDefault) e.preventDefault();
+    // 1. Prevent default action if event is provided or globally available
+    const ev = e || window.event;
+    if (ev && ev.preventDefault) ev.preventDefault();
+
     console.log("Logout initiated...");
 
     // Show visual processing state if clicked via button
-    const btn = e && e.currentTarget ? e.currentTarget : null;
+    const btn = ev && ev.currentTarget ? ev.currentTarget : null;
     if (btn && btn.tagName === 'BUTTON') btn.innerHTML = 'Logging out...';
 
-    // 1. Wipe local state aggressively FIRST
+    // 2. Wipe local state aggressively FIRST
     window.currentUser = null;
     try {
         Object.keys(localStorage).forEach(key => {
@@ -66,26 +69,22 @@ async function logout(e) {
                 localStorage.removeItem(key);
             }
         });
+        Object.keys(sessionStorage).forEach(key => {
+            sessionStorage.removeItem(key);
+        });
     } catch (err) {
         console.warn("Storage wipe error:", err);
     }
 
-    // 2. Race the network response so we never hang the UI
-    if (window.supabase) {
-        try {
-            await Promise.race([
-                window.supabaseClient.auth.signOut(),
-                new Promise(res => setTimeout(res, 800)) // Max wait 800ms
-            ]);
-        } catch (err) {
-            console.warn("Signout disconnect:", err);
-        }
+    // 3. Trigger network signout cleanly, don't block redirection on it
+    if (window.supabaseClient && window.supabaseClient.auth) {
+        window.supabaseClient.auth.signOut().catch(err => console.warn("Signout disconnect error:", err));
     }
 
     console.log("State destroyed. Redirection triggering.");
 
-    // 3. Navigate strictly relative to prevent local-to-prod redirect hijacking
-    window.location.replace('index.html');
+    // 4. Force immediate navigation to root/index
+    window.location.href = 'index.html';
 }
 
 // Map globally and on window for maximum compatibility with onclick handlers
