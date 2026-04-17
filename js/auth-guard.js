@@ -87,8 +87,8 @@ async function logout(e) {
 
     console.log("Local state cleared. Redirecting to login page...");
     
-    // 4. Redirect to login page immediately
-    window.location.href = 'index.html';
+    // 4. Redirect to the specified site
+    window.location.href = 'https://thoratsoham.github.io/BG-132/';
 }
 
 // Map globally and on window for maximum compatibility with onclick handlers
