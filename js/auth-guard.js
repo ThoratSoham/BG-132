@@ -52,7 +52,20 @@ window.displayUserProfile = displayUserProfile;
 
 // Redirect logout globally
 window.logout = async function() {
-    await supabase.auth.signOut();
+    try {
+        await supabase.auth.signOut();
+    } catch(e) {
+        // Ignore network errors — we still want to log out locally
+        console.warn('signOut network error (ignored):', e);
+    }
+    // Always clear local state regardless
+    window.currentUser = null;
+    // Clear any Supabase session keys from localStorage
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+            localStorage.removeItem(key);
+        }
+    });
     window.location.href = 'index.html';
 };
 
