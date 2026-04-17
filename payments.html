@@ -217,6 +217,7 @@
                         <div class="tab" data-target="recharge">Mobile Recharge</div>
                         <div class="tab" data-target="bills">Bill Payment</div>
                         <div class="tab" data-target="upi">UPI Payment</div>
+                        <div class="tab" data-target="add-money">Add Money</div>
                     </div>
 
                     <div id="forms-container">
@@ -305,6 +306,26 @@
                                 <button type="submit" class="btn btn-primary btn-full">Proceed to Pay</button>
                             </form>
                         </div>
+
+                        <!-- Add Money -->
+                        <div class="tab-content" id="add-money">
+                            <form id="form-add-money" class="payment-form">
+                                <div class="form-group">
+                                    <label>Amount to Add ($)</label>
+                                    <input type="number" class="form-control" name="amount" min="1" step="0.01"
+                                        placeholder="0.00" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Funding Source</label>
+                                    <select class="form-control" name="title" required style="appearance: none;">
+                                        <option value="" disabled selected>Select Source</option>
+                                        <option value="Deposit from Bank">Linked Bank Account</option>
+                                        <option value="Debit Card Deposit">Debit Card (Ends in 1234)</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">Deposit Funds</button>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- Confirmation Screen -->
@@ -373,6 +394,18 @@
             });
         });
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        if (tabParam) {
+            const targetTab = document.querySelector(`.tab[data-target="${tabParam}"]`);
+            if (targetTab) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                targetTab.classList.add('active');
+                document.getElementById(tabParam).classList.add('active');
+            }
+        }
+
         // Mock Payment Flow
         document.querySelectorAll('.payment-form').forEach(form => {
             form.addEventListener('submit', (e) => {
@@ -381,26 +414,28 @@
                 const amountInput = form.querySelector('input[name="amount"]');
                 const amount = amountInput ? parseFloat(amountInput.value) : 0;
 
-                const titleInput = form.querySelector('input[name="title"]');
+                const titleInput = form.querySelector('input[name="title"]') || form.querySelector('select[name="title"]');
                 let title = titleInput ? titleInput.value : '';
                 if (!title) {
                     if (form.id === 'form-send') title = 'Send Money';
                     if (form.id === 'form-recharge') title = 'Mobile Recharge';
                     if (form.id === 'form-bills') title = 'Bill Payment';
                     if (form.id === 'form-upi') title = 'UPI Payment';
+                    if (form.id === 'form-add-money') title = 'Funds Deposited';
                 }
 
                 if (amount > 0) {
+                    const isCredit = form.id === 'form-add-money';
                     const newTxn = {
                         id: Math.random().toString(36).substr(2, 9),
                         title: title,
                         date: new Date().toISOString(),
                         amount: amount,
-                        type: 'debit',
-                        icon: form.id === 'form-recharge' ? 'smartphone' : (form.id === 'form-bills' ? 'file-text' : 'send')
+                        type: isCredit ? 'credit' : 'debit',
+                        icon: isCredit ? 'arrow-down-left' : (form.id === 'form-recharge' ? 'smartphone' : (form.id === 'form-bills' ? 'file-text' : 'send'))
                     };
                     window.addTransaction(newTxn);
-                    window.updateBalance(amount, 'debit');
+                    window.updateBalance(amount, isCredit ? 'credit' : 'debit');
                 }
 
                 document.getElementById('forms-container').style.display = 'none';

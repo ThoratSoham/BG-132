@@ -59,7 +59,7 @@
 
         .quick-actions {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 1rem;
             margin-top: 1.5rem;
         }
@@ -248,6 +248,12 @@
                         <div class="action-card" onclick="window.location.href='payments.html?tab=bills'">
                             <div class="action-icon"><i data-lucide="file-text"></i></div>
                             <span style="font-weight: 500; font-size: 0.875rem;">Bill Pay</span>
+                        </div>
+                        <div class="action-card" onclick="window.location.href='payments.html?tab=add-money'">
+                            <div class="action-icon"
+                                style="color: var(--success); background: rgba(16, 185, 129, 0.15);"><i
+                                    data-lucide="plus-circle"></i></div>
+                            <span style="font-weight: 500; font-size: 0.875rem;">Add Money</span>
                         </div>
                     </div>
 
