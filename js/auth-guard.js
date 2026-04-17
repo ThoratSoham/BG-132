@@ -5,9 +5,9 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function checkAuth() {
     const { data: { session }, error } = await supabase.auth.getSession();
-    
+
     const isAuthPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/');
-    
+
     if (!session && !isAuthPage) {
         window.location.href = 'index.html';
         return;
@@ -28,7 +28,7 @@ function displayUserProfile(user) {
     const profEmail = document.getElementById('prof-email');
     const profAvatar = document.getElementById('prof-avatar');
     const profPhone = document.getElementById('prof-phone');
-    
+
     // 2. Update Header (Dashboard, etc)
     const headerWelcome = document.getElementById('header-welcome');
     const headerAvatar = document.getElementById('header-avatar');
@@ -50,16 +50,22 @@ function displayUserProfile(user) {
 // Expose globally so pages can manually trigger it
 window.displayUserProfile = displayUserProfile;
 
-// Define logout globally so it can be called from onclick="logout()"
-async function logout() {
+/**
+ * Robust Logout Function
+ * Clears local state and redirects to login page.
+ */
+async function logout(e) {
+    if (e && e.preventDefault) e.preventDefault();
     console.log("Logout initiated...");
+
     try {
         // 1. Attempt Supabase sign out (may fail if offline/invalid session)
         if (window.supabase) {
-            await window.supabaseClient.auth.signOut();
+            // We don't await this so it doesn't block redirection if the network is slow
+            window.supabaseClient.auth.signOut().catch(err => console.warn('Supabase signOut error:', err));
         }
-    } catch (e) {
-        console.warn('Supabase signOut error (ignoring):', e);
+    } catch (err) {
+        console.warn('Logout check error:', err);
     }
 
     // 2. FORCE clear local state regardless of Supabase response
@@ -72,20 +78,20 @@ async function logout() {
                 localStorage.removeItem(key);
             }
         });
-    } catch (e) {
-        console.error("Local storage clear error:", e);
+    } catch (err) {
+        console.error("Local storage clear error:", err);
     }
 
-    // 3. Clear our app-specific keys just in case
+    // 3. Clear our app-specific keys
     localStorage.removeItem('neobank_logged_in'); 
 
-    console.log("Local state cleared. Redirecting...");
+    console.log("Local state cleared. Redirecting to login page...");
     
-    // 4. Redirect to login page
+    // 4. Redirect to login page immediately
     window.location.href = 'index.html';
 }
 
-// Map both for compatibility
+// Map globally and on window for maximum compatibility with onclick handlers
 window.logout = logout;
 
 document.addEventListener('DOMContentLoaded', () => {
