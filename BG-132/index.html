@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoBank - Log In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top left, var(--surface-dark), var(--bg-darker));
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2.5rem;
+            text-align: center;
+        }
+
+        .auth-header {
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h1 {
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-header p {
+            color: var(--text-muted);
+        }
+
+        .form-group {
+            text-align: left;
+        }
+
+        .btn-full {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .otp-section {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .otp-inputs {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: space-between;
+        }
+
+        .otp-inputs input {
+            width: 48px;
+            height: 56px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .toggle-form {
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .toggle-form a {
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth-guard.js?v=2"></script>
+</head>
+<body>
+
+    <div class="glass auth-container fade-in">
+        <div class="auth-header">
+            <h1><i data-lucide="zap"></i> NeoBank</h1>
+            <p id="form-subtitle">Secure access to your finances</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" action="dashboard.html">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <div style="position: relative;">
+                    <i data-lucide="mail" style="position: absolute; left: 12px; top: 12px; color: var(--text-muted);"></i>
+                    <input type="email" id="email" class="form-control" placeholder="user@demo.com" style="padding-left: 40px;" required value="user@demo.com">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div style="position: relative;">
+                    <i data-lucide="lock" style="position: absolute; left: 12px; top: 12px; color: var(--text-muted);"></i>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" style="padding-left: 40px;" required value="password123">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">
+                Continue <i data-lucide="arrow-right"></i>
+            </button>
+            <button type="button" class="btn btn-full" id="google-login-btn" style="margin-top: 0.5rem; background: var(--surface-light); color: var(--text); border: 1px solid var(--surface-border);">
+                <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Continue with Google
+            </button>
+        </form>
+
+        <div class="toggle-form" id="signup-prompt">
+            New here? <a>Create an account</a>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Basic toggle between Sign In and Sign Up (for UI functionality)
+        const signupPrompt = document.getElementById('signup-prompt');
+        let isSignup = false;
+        
+        signupPrompt.querySelector('a').addEventListener('click', () => {
+            isSignup = !isSignup;
+            const headerTitle = document.querySelector('.auth-header p');
+            const submitBtn = document.querySelector('#login-form button[type="submit"]');
+            
+            if (isSignup) {
+                headerTitle.textContent = 'Create a new account';
+                submitBtn.innerHTML = 'Sign Up <i data-lucide="arrow-right"></i>';
+                signupPrompt.innerHTML = 'Already have an account? <a>Log in</a>';
+            } else {
+                headerTitle.textContent = 'Secure access to your finances';
+                submitBtn.innerHTML = 'Continue <i data-lucide="arrow-right"></i>';
+                signupPrompt.innerHTML = 'New here? <a>Create an account</a>';
+            }
+            lucide.createIcons();
+            
+            // Re-bind the toggle event listener
+            signupPrompt.querySelector('a').addEventListener('click', arguments.callee);
+        });
+
+        const loginForm = document.getElementById('login-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const googleBtn = document.getElementById('google-login-btn');
+
+        // Create a dedicated local instance exactly where and when we need it
+        const SUPABASE_URL = 'https://ozpfohheqvaxmzzrujuj.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96cGZvaGhlcXZheG16enJ1anVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTU4NDIsImV4cCI6MjA5MTk3MTg0Mn0.77C7H8PLBXNuvad_AETmuwYra-9Na8msuazERSdkkMU';
+        const localSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            const btn = loginForm.querySelector('button[type="submit"]');
+
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = isSignup ? 'Creating account...' : 'Signing in...';
+            btn.disabled = true;
+
+            let result;
+            if (isSignup) {
+                result = await localSupabase.auth.signUp({
+                    email,
+                    password
+                });
+            } else {
+                result = await localSupabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+            }
+
+            const { data, error } = result;
+
+            if (error) {
+                alert((isSignup ? 'Signup failed: ' : 'Login failed: ') + error.message);
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            } else {
+                if (isSignup && !data.session) {
+                    alert('Account created! Please verify your email before logging in.');
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                } else {
+                    // Success
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        });
+
+        googleBtn.addEventListener('click', async () => {
+             const originalText = googleBtn.innerHTML;
+             googleBtn.innerHTML = 'Connecting...'; // Removed spin since it might not be defined in CSS yet
+             googleBtn.disabled = true;
+             
+             try {
+                 // Try to formulate a redirect URL based on current environment
+                 let redirectUrl = window.location.href;
+                 if (redirectUrl.includes('index.html')) {
+                     redirectUrl = redirectUrl.replace('index.html', 'dashboard.html');
+                 } else if (redirectUrl.endsWith('/')) {
+                     redirectUrl = redirectUrl + 'dashboard.html';
+                 }
+                 
+                 const { data, error } = await localSupabase.auth.signInWithOAuth({
+                     provider: 'google',
+                     options: {
+                         redirectTo: redirectUrl
+                     }
+                 });
+                 
+                 if (error) {
+                     alert('Google Login failed: ' + error.message);
+                     googleBtn.innerHTML = originalText;
+                     googleBtn.disabled = false;
+                     lucide.createIcons();
+                 }
+                 // Note: If successful, the page will instantly redirect automatically to Google
+             } catch (err) {
+                 alert('Critical Exception: ' + err.message);
+                 console.error(err);
+                 googleBtn.innerHTML = originalText;
+                 googleBtn.disabled = false;
+                 lucide.createIcons();
+             }
+        });
+
+    </script>
+</body>
+</html>
