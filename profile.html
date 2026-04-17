@@ -191,9 +191,11 @@
             const saveBtn = document.getElementById('btn-save-account');
             const container = document.getElementById('linked-accounts-container');
 
-            // Helper to get the ready client from auth-guard.js
-            const getClient = () => window.supabaseClient;
-             
+            // Self-contained client — no dependency on auth-guard globalshared state
+            const SB_URL = 'https://ozpfohheqvaxmzzrujuj.supabase.co';
+            const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96cGZvaGhlcXZheG16enJ1anVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTU4NDIsImV4cCI6MjA5MTk3MTg0Mn0.77C7H8PLBXNuvad_AETmuwYra-9Na8msuazERSdkkMU';
+            const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
             addBtn.addEventListener('click', () => {
                 formDiv.style.display = 'block';
                 addBtn.style.display = 'none';
@@ -220,40 +222,26 @@
             };
              
             const loadAccounts = async () => {
-                const client = getClient();
-                if (!client) return setTimeout(loadAccounts, 100);
-
-                const { data: { session } } = await client.auth.getSession();
+                const { data: { session } } = await sb.auth.getSession();
                 if (!session) return;
                 
-                const { data, error } = await client
+                const { data, error } = await sb
                     .from('linked_accounts')
                     .select('*')
                     .order('created_at', { ascending: true });
                     
-                if (!error && data) {
-                    if (data.length > 0) {
-                        container.innerHTML = ''; 
-                    }
-                    data.forEach(acc => {
-                        appendAccountToUI(acc.bank_name, acc.account_number);
-                    });
+                if (!error && data && data.length > 0) {
+                    container.innerHTML = '';
+                    data.forEach(acc => appendAccountToUI(acc.bank_name, acc.account_number));
                 }
             };
             
             saveBtn.addEventListener('click', async () => {
                 const bankName = document.getElementById('new-bank-name').value.trim();
                 const accNum = document.getElementById('new-account-num').value.trim();
-                const client = getClient();
-
-                if (!client) {
-                    alert('System initializing, please try again in a second.');
-                    return;
-                }
                 
                 if (!bankName || !accNum) {
-                    if(window.showToast) window.showToast('Please fill all fields', 'warning');
-                    else alert('Please fill all fields');
+                    alert('Please fill in both Bank Name and Account Number.');
                     return;
                 }
                 
@@ -261,40 +249,37 @@
                 saveBtn.disabled = true;
                 
                 try {
-                    // Fail-safe: Check the global user first, then try the SDK if missing
-                    const user = window.currentUser || (await client.auth.getSession())?.data?.session?.user;
+                    const { data: { session } } = await sb.auth.getSession();
                     
-                    if (!user) {
-                         if(window.showToast) window.showToast('Authentication error: User not found. Please refresh.', 'error');
-                         return;
+                    if (!session) {
+                        alert('Your session has expired. Please refresh the page and log in again.');
+                        return;
                     }
                     
-                    const { data, error } = await client
+                    const { data, error } = await sb
                         .from('linked_accounts')
-                        .insert([{ user_id: user.id, bank_name: bankName, account_number: accNum }])
+                        .insert([{ user_id: session.user.id, bank_name: bankName, account_number: accNum }])
                         .select();
                         
                     if (error) {
-                        alert('Database Error: ' + error.message + '\n\nHint: Ensure you ran the SQL script in Supabase dashboard.');
+                        alert('Database Error: ' + error.message + '\n\nMake sure you ran the SQL script in Supabase SQL Editor.');
                     } else {
-                        if(window.showToast) window.showToast('Account added safely!', 'success');
-                        
                         if (container.innerHTML.includes('SBI - ****1234')) {
                             container.innerHTML = '';
                         }
-                        
                         appendAccountToUI(bankName, accNum);
                         cancelBtn.click();
+                        alert('Account added successfully!');
                     }
                 } catch (err) {
-                    alert('An unexpected error occurred: ' + err.message);
+                    alert('Unexpected error: ' + err.message);
                 } finally {
                     saveBtn.innerHTML = 'Save';
                     saveBtn.disabled = false;
                 }
             });
             
-            // Execute on load
+            // Load saved accounts on page load
             loadAccounts();
         });
     </script>
