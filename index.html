@@ -203,16 +203,37 @@
 
         googleBtn.addEventListener('click', async () => {
              const originalText = googleBtn.innerHTML;
-             googleBtn.innerHTML = '<i data-lucide="loader" class="spin"></i> Connecting...';
-             lucide.createIcons();
+             googleBtn.innerHTML = 'Connecting...'; // Removed spin since it might not be defined in CSS yet
+             googleBtn.disabled = true;
              
-             const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
-                 provider: 'google',
-             });
-             
-             if (error) {
-                 alert('Google Login failed: ' + error.message);
+             try {
+                 // Try to formulate a redirect URL based on current environment
+                 let redirectUrl = window.location.href;
+                 if (redirectUrl.includes('index.html')) {
+                     redirectUrl = redirectUrl.replace('index.html', 'dashboard.html');
+                 } else if (redirectUrl.endsWith('/')) {
+                     redirectUrl = redirectUrl + 'dashboard.html';
+                 }
+                 
+                 const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+                     provider: 'google',
+                     options: {
+                         redirectTo: redirectUrl
+                     }
+                 });
+                 
+                 if (error) {
+                     alert('Google Login failed: ' + error.message);
+                     googleBtn.innerHTML = originalText;
+                     googleBtn.disabled = false;
+                     lucide.createIcons();
+                 }
+                 // Note: If successful, the page will instantly redirect automatically to Google
+             } catch (err) {
+                 alert('Critical Exception: ' + err.message);
+                 console.error(err);
                  googleBtn.innerHTML = originalText;
+                 googleBtn.disabled = false;
                  lucide.createIcons();
              }
         });
