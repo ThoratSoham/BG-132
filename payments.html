@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,37 +9,179 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        .tabs { display: flex; border-bottom: 1px solid var(--surface-border); margin-bottom: 1.5rem; }
-        .tab {
-            padding: 1rem 1.5rem; color: var(--text-muted); cursor: pointer;
-            border-bottom: 2px solid transparent; transition: all 0.2s; font-weight: 500;
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--surface-border);
+            margin-bottom: 1.5rem;
         }
-        .tab:hover { color: var(--text-main); }
-        .tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
-        
-        .tab-content { display: none; padding: 1rem; background: var(--surface-dark); border-radius: 12px; border: 1px solid var(--surface-border); }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
 
-        .payment-status { display: none; text-align: center; padding: 2rem; }
-        .payment-status.active { display: flex; flex-direction: column; align-items: center; justify-content: center; animation: fadeIn 0.3s; }
-        
-        .status-icon {
-            width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            margin-bottom: 1rem; color: white;
+        .tab {
+            padding: 1rem 1.5rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-weight: 500;
         }
-        .status-icon.success { background: var(--success); }
-        .status-icon.error { background: var(--danger); }
-        
+
+        .tab:hover {
+            color: var(--text-main);
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 1rem;
+            background: var(--surface-dark);
+            border-radius: 12px;
+            border: 1px solid var(--surface-border);
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .payment-status {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .payment-status.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .status-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .status-icon.success {
+            background: var(--success);
+        }
+
+        .status-icon.error {
+            background: var(--danger);
+        }
+
         /* Spinner */
         .loader {
-            border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary-color);
-            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 2rem auto;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title a {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .txn-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .txn-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-dark);
+            padding: 1rem;
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+        }
+
+        .txn-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .txn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .txn-icon.debit {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .txn-icon.credit {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .txn-details h4 {
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .txn-details p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/auth-guard.js"></script>
 </head>
+
 <body>
 
     <div class="app-container">
@@ -53,7 +196,8 @@
                 <li><a href="cards.html"><i data-lucide="credit-card"></i> Cards</a></li>
                 <li><a href="payments.html" class="active"><i data-lucide="send"></i> Payments</a></li>
                 <li><a href="profile.html"><i data-lucide="user"></i> Profile</a></li>
-                <li style="margin-top: 2rem;"><a href="#" onclick="logout()"><i data-lucide="log-out"></i> Logout</a></li>
+                <li style="margin-top: 2rem;"><a href="#" onclick="logout()"><i data-lucide="log-out"></i> Logout</a>
+                </li>
             </ul>
         </aside>
 
@@ -64,134 +208,152 @@
                 <h1 class="page-title fade-in">Payments</h1>
             </header>
 
-            <div class="fade-in" style="max-width: 600px; margin: 0 auto;">
-                
-                <div class="tabs">
-                    <div class="tab active" data-target="send">Send Money</div>
-                    <div class="tab" data-target="recharge">Mobile Recharge</div>
-                    <div class="tab" data-target="bills">Bill Payment</div>
-                    <div class="tab" data-target="upi">UPI Payment</div>
-                </div>
+            <div class="dashboard-grid fade-in">
+                <!-- Left Column -->
+                <div>
 
-                <div id="forms-container">
-                    <!-- Send Money -->
-                    <div class="tab-content active" id="send">
-                        <form id="form-send" class="payment-form">
-                            <div class="form-group">
-                                <label>Recipient UPI ID or Account</label>
-                                <input type="text" class="form-control" placeholder="username@bank" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Amount ($)</label>
-                                <input type="number" class="form-control" name="amount" min="1" step="0.01" placeholder="0.00" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Note (Optional)</label>
-                                <input type="text" class="form-control" name="title" placeholder="What's this for?">
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-full">Proceed to Pay</button>
-                        </form>
+                    <div class="tabs">
+                        <div class="tab active" data-target="send">Send Money</div>
+                        <div class="tab" data-target="recharge">Mobile Recharge</div>
+                        <div class="tab" data-target="bills">Bill Payment</div>
+                        <div class="tab" data-target="upi">UPI Payment</div>
                     </div>
 
-                    <!-- Recharge -->
-                    <div class="tab-content" id="recharge">
-                        <form id="form-recharge" class="payment-form">
-                            <div class="form-group">
-                                <label>Mobile Number</label>
-                                <input type="tel" class="form-control" placeholder="+1 (555) 000-0000" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Operator</label>
-                                <select class="form-control" required style="appearance: none;">
-                                    <option value="" disabled selected>Select Operator</option>
-                                    <option>Verizon</option>
-                                    <option>AT&T</option>
-                                    <option>T-Mobile</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Amount ($)</label>
-                                <input type="number" class="form-control" name="amount" min="1" step="0.01" placeholder="0.00" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-full">Recharge Now</button>
-                        </form>
-                    </div>
-
-                    <!-- Bills -->
-                    <div class="tab-content" id="bills">
-                        <form id="form-bills" class="payment-form">
-                            <div class="form-group">
-                                <label>Biller Categories</label>
-                                <select class="form-control" required name="category" style="appearance: none;">
-                                    <option value="" disabled selected>Select Category</option>
-                                    <option>Electricity</option>
-                                    <option>Water</option>
-                                    <option>Internet</option>
-                                    <option>Credit Card</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Consumer ID</label>
-                                <input type="text" class="form-control" placeholder="1234567890" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Amount ($)</label>
-                                <input type="number" class="form-control" name="amount" min="1" step="0.01" placeholder="0.00" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-full">Pay Bill</button>
-                        </form>
-                    </div>
-                    <!-- UPI -->
-                    <div class="tab-content" id="upi">
-                        <form id="form-upi" class="payment-form">
-                            <div class="form-group">
-                                <label>UPI ID (VPA)</label>
-                                <input type="text" class="form-control" placeholder="user@bank" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Amount ($)</label>
-                                <input type="number" class="form-control" name="amount" min="1" step="0.01" placeholder="0.00" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-full">Proceed to Pay</button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Confirmation Screen -->
-                <div id="confirmation-screen" class="glass" style="display:none; padding: 2rem;">
-                    <h2 style="margin-bottom: 1.5rem; text-align: center;">Confirm Payment</h2>
-                    <div style="background: var(--bg-dark); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span class="text-muted">Type:</span> <strong id="confirm-category">--</strong>
+                    <div id="forms-container">
+                        <!-- Send Money -->
+                        <div class="tab-content active" id="send">
+                            <form id="form-send" class="payment-form">
+                                <div class="form-group">
+                                    <label>Recipient UPI ID or Account</label>
+                                    <input type="text" class="form-control" placeholder="username@bank" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Amount ($)</label>
+                                    <input type="number" class="form-control" name="amount" min="1" step="0.01"
+                                        placeholder="0.00" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Note (Optional)</label>
+                                    <input type="text" class="form-control" name="title" placeholder="What's this for?">
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">Proceed to Pay</button>
+                            </form>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span class="text-muted">Amount:</span> <strong id="confirm-amount" style="font-size: 1.25rem; color: var(--primary-color);">--</strong>
+
+                        <!-- Recharge -->
+                        <div class="tab-content" id="recharge">
+                            <form id="form-recharge" class="payment-form">
+                                <div class="form-group">
+                                    <label>Mobile Number</label>
+                                    <input type="tel" class="form-control" placeholder="+1 (555) 000-0000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Operator</label>
+                                    <select class="form-control" required style="appearance: none;">
+                                        <option value="" disabled selected>Select Operator</option>
+                                        <option>Verizon</option>
+                                        <option>AT&T</option>
+                                        <option>T-Mobile</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Amount ($)</label>
+                                    <input type="number" class="form-control" name="amount" min="1" step="0.01"
+                                        placeholder="0.00" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">Recharge Now</button>
+                            </form>
                         </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span class="text-muted">Details:</span> <strong id="confirm-details">--</strong>
+
+                        <!-- Bills -->
+                        <div class="tab-content" id="bills">
+                            <form id="form-bills" class="payment-form">
+                                <div class="form-group">
+                                    <label>Biller Categories</label>
+                                    <select class="form-control" required name="category" style="appearance: none;">
+                                        <option value="" disabled selected>Select Category</option>
+                                        <option>Electricity</option>
+                                        <option>Water</option>
+                                        <option>Internet</option>
+                                        <option>Credit Card</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Consumer ID</label>
+                                    <input type="text" class="form-control" placeholder="1234567890" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Amount ($)</label>
+                                    <input type="number" class="form-control" name="amount" min="1" step="0.01"
+                                        placeholder="0.00" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">Pay Bill</button>
+                            </form>
+                        </div>
+                        <!-- UPI -->
+                        <div class="tab-content" id="upi">
+                            <form id="form-upi" class="payment-form">
+                                <div class="form-group">
+                                    <label>UPI ID (VPA)</label>
+                                    <input type="text" class="form-control" placeholder="user@bank" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Amount ($)</label>
+                                    <input type="number" class="form-control" name="amount" min="1" step="0.01"
+                                        placeholder="0.00" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">Proceed to Pay</button>
+                            </form>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <button class="btn btn-secondary" style="flex: 1;" onclick="cancelPayment()">Cancel</button>
-                        <button class="btn btn-primary" style="flex: 1;" id="btn-confirm-pay">Confirm</button>
+
+                    <!-- Confirmation Screen -->
+                    <div id="confirmation-screen" class="glass" style="display:none; padding: 2rem;">
+                        <h2 style="margin-bottom: 1.5rem; text-align: center;">Confirm Payment</h2>
+                        <div
+                            style="background: var(--bg-dark); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span class="text-muted">Type:</span> <strong id="confirm-category">--</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span class="text-muted">Amount:</span> <strong id="confirm-amount"
+                                    style="font-size: 1.25rem; color: var(--primary-color);">--</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span class="text-muted">Details:</span> <strong id="confirm-details">--</strong>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="cancelPayment()">Cancel</button>
+                            <button class="btn btn-primary" style="flex: 1;" id="btn-confirm-pay">Confirm</button>
+                        </div>
+                    </div>
+
+                    <!-- Processing Screen -->
+                    <div id="processing-screen" style="display:none; text-align: center; padding: 3rem;">
+                        <h3 style="margin-bottom: 1rem;">Processing Transaction...</h3>
+                        <p class="text-muted">Please do not refresh the page or press back.</p>
+                        <div class="loader"></div>
+                    </div>
+
+                    <!-- Status Screen -->
+                    <div class="payment-status glass" id="status-screen">
+                        <div class="status-icon" id="status-icon">
+                            <!-- injected -->
+                        </div>
+                        <h2 id="status-title" style="margin-bottom: 0.5rem;">Payment Successful</h2>
+                        <p id="status-desc" class="text-muted" style="margin-bottom: 2rem;">Transaction ID: #000000</p>
+                        <button class="btn btn-primary" onclick="window.location.href='dashboard.html'">Return to
+                            Dashboard</button>
                     </div>
                 </div>
 
-                <!-- Processing Screen -->
-                <div id="processing-screen" style="display:none; text-align: center; padding: 3rem;">
-                    <h3 style="margin-bottom: 1rem;">Processing Transaction...</h3>
-                    <p class="text-muted">Please do not refresh the page or press back.</p>
-                    <div class="loader"></div>
-                </div>
-
-                <!-- Status Screen -->
-                <div class="payment-status glass" id="status-screen">
-                    <div class="status-icon" id="status-icon">
-                        <!-- injected -->
+                <!-- Right Column -->
+                <div>
+                    <h3 class="section-title">Recent Transactions <a href="accounts.html">View All</a></h3>
+                    <div class="txn-list" id="pay-txns">
+                        <!-- Injected via JS -->
                     </div>
-                    <h2 id="status-title" style="margin-bottom: 0.5rem;">Payment Successful</h2>
-                    <p id="status-desc" class="text-muted" style="margin-bottom: 2rem;">Transaction ID: #000000</p>
-                    <button class="btn btn-primary" onclick="window.location.href='dashboard.html'">Return to Dashboard</button>
                 </div>
             </div>
         </main>
@@ -215,20 +377,52 @@
         document.querySelectorAll('.payment-form').forEach(form => {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
+
+                const amountInput = form.querySelector('input[name="amount"]');
+                const amount = amountInput ? parseFloat(amountInput.value) : 0;
+
+                const titleInput = form.querySelector('input[name="title"]');
+                let title = titleInput ? titleInput.value : '';
+                if (!title) {
+                    if (form.id === 'form-send') title = 'Send Money';
+                    if (form.id === 'form-recharge') title = 'Mobile Recharge';
+                    if (form.id === 'form-bills') title = 'Bill Payment';
+                    if (form.id === 'form-upi') title = 'UPI Payment';
+                }
+
+                if (amount > 0) {
+                    const newTxn = {
+                        id: Math.random().toString(36).substr(2, 9),
+                        title: title,
+                        date: new Date().toISOString(),
+                        amount: amount,
+                        type: 'debit',
+                        icon: form.id === 'form-recharge' ? 'smartphone' : (form.id === 'form-bills' ? 'file-text' : 'send')
+                    };
+                    window.addTransaction(newTxn);
+                    window.updateBalance(amount, 'debit');
+                }
+
                 document.getElementById('forms-container').style.display = 'none';
                 document.querySelector('.tabs').style.display = 'none';
                 document.getElementById('processing-screen').style.display = 'block';
-                
+
                 setTimeout(() => {
                     document.getElementById('processing-screen').style.display = 'none';
                     document.getElementById('status-screen').style.display = 'flex';
                     document.getElementById('status-screen').classList.add('active');
                     document.getElementById('status-icon').innerHTML = '<i data-lucide="check-circle" style="width:40px; height:40px;"></i>';
                     document.getElementById('status-icon').classList.add('success');
-                    lucide.createIcons();
+                    if (window.lucide) window.lucide.createIcons();
+                    window.renderTransactions('pay-txns', 5);
                 }, 1500);
             });
         });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.renderTransactions('pay-txns', 5);
+        });
     </script>
 </body>
+
 </html>
