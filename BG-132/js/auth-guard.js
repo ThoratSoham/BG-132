@@ -18,8 +18,23 @@ async function checkAuth() {
 }
 
 // Redirect logout globally
-window.logout = async function() {
-    await supabase.auth.signOut();
+window.logout = async function(event) {
+    if (event) {
+        event.preventDefault();
+    }
+    try {
+        await supabase.auth.signOut();
+    } catch (error) {
+        console.error("Error during logout:", error);
+    }
+    
+    // Clear local storage but keep theme preference
+    const theme = localStorage.getItem('theme');
+    localStorage.clear();
+    if (theme) {
+        localStorage.setItem('theme', theme);
+    }
+    
     window.location.href = 'index.html';
 };
 
