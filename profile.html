@@ -181,10 +181,8 @@
             const saveBtn = document.getElementById('btn-save-account');
             const container = document.getElementById('linked-accounts-container');
 
-            // Creating a local instance for maximum reliability (same as index.html)
-            const SUPABASE_URL = 'https://ozpfohheqvaxmzzrujuj.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96cGZvaGhlcXZheG16enJ1anVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTU4NDIsImV4cCI6MjA5MTk3MTg0Mn0.77C7H8PLBXNuvad_AETmuwYra-9Na8msuazERSdkkMU';
-            const localSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            // Helper to get the ready client from auth-guard.js
+            const getClient = () => window.supabaseClient;
              
             addBtn.addEventListener('click', () => {
                 formDiv.style.display = 'block';
@@ -212,10 +210,13 @@
             };
              
             const loadAccounts = async () => {
-                const { data: { user } } = await localSupabase.auth.getUser();
-                if (!user) return;
+                const client = getClient();
+                if (!client) return setTimeout(loadAccounts, 100);
+
+                const { data: { session } } = await client.auth.getSession();
+                if (!session) return;
                 
-                const { data, error } = await localSupabase
+                const { data, error } = await client
                     .from('linked_accounts')
                     .select('*')
                     .order('created_at', { ascending: true });
@@ -227,14 +228,18 @@
                     data.forEach(acc => {
                         appendAccountToUI(acc.bank_name, acc.account_number);
                     });
-                } else if (error) {
-                    console.error('Fetch error:', error);
                 }
             };
             
             saveBtn.addEventListener('click', async () => {
                 const bankName = document.getElementById('new-bank-name').value.trim();
                 const accNum = document.getElementById('new-account-num').value.trim();
+                const client = getClient();
+
+                if (!client) {
+                    alert('System initializing, please try again in a second.');
+                    return;
+                }
                 
                 if (!bankName || !accNum) {
                     if(window.showToast) window.showToast('Please fill all fields', 'warning');
@@ -246,37 +251,32 @@
                 saveBtn.disabled = true;
                 
                 try {
-                    const { data: { user }, error: userError } = await localSupabase.auth.getUser();
+                    const { data: { session }, error: sessionError } = await client.auth.getSession();
                     
-                    if (userError || !user) {
-                         if(window.showToast) window.showToast('Authentication error: Not logged in', 'error');
-                         saveBtn.innerHTML = 'Save';
-                         saveBtn.disabled = false;
+                    if (sessionError || !session) {
+                         if(window.showToast) window.showToast('Authentication error: Session not found', 'error');
                          return;
                     }
                     
-                    const { data, error } = await localSupabase
+                    const { data, error } = await client
                         .from('linked_accounts')
-                        .insert([{ user_id: user.id, bank_name: bankName, account_number: accNum }])
+                        .insert([{ user_id: session.user.id, bank_name: bankName, account_number: accNum }])
                         .select();
                         
                     if (error) {
-                        alert('Database Error: ' + error.message + '\n\nHint: Ensure you ran the SQL script in Supabase dashboard to create the table.');
-                        console.error(error);
+                        alert('Database Error: ' + error.message + '\n\nHint: Ensure you ran the SQL script in Supabase dashboard.');
                     } else {
                         if(window.showToast) window.showToast('Account added safely!', 'success');
                         
-                        // If this is the FIRST item created, clear the hardcoded dummies out
                         if (container.innerHTML.includes('SBI - ****1234')) {
                             container.innerHTML = '';
                         }
                         
                         appendAccountToUI(bankName, accNum);
-                        cancelBtn.click(); // Close and reset form
+                        cancelBtn.click();
                     }
                 } catch (err) {
                     alert('An unexpected error occurred: ' + err.message);
-                    console.error(err);
                 } finally {
                     saveBtn.innerHTML = 'Save';
                     saveBtn.disabled = false;
