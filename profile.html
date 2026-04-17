@@ -249,20 +249,31 @@
                 saveBtn.disabled = true;
                 
                 try {
-                    const { data: { session } } = await sb.auth.getSession();
+                    // DIAGNOSTIC: Show what we know
+                    const sessionResult = await sb.auth.getSession();
+                    const session = sessionResult?.data?.session;
+                    const sessionError = sessionResult?.error;
                     
-                    if (!session) {
-                        alert('Your session has expired. Please refresh the page and log in again.');
+                    if (sessionError) {
+                        alert('SESSION ERROR:\n' + sessionError.message);
                         return;
                     }
                     
+                    if (!session) {
+                        // Check localStorage for clues
+                        const lsKeys = Object.keys(localStorage).filter(k => k.includes('sb-') || k.includes('supabase'));
+                        alert('No session found.\n\nLocalStorage keys found: ' + (lsKeys.length > 0 ? lsKeys.join(', ') : 'NONE') + '\n\nThis means you are not logged in. Please log out and log back in.');
+                        return;
+                    }
+                    
+                    // Session found — try inserting
                     const { data, error } = await sb
                         .from('linked_accounts')
                         .insert([{ user_id: session.user.id, bank_name: bankName, account_number: accNum }])
                         .select();
                         
                     if (error) {
-                        alert('Database Error: ' + error.message + '\n\nMake sure you ran the SQL script in Supabase SQL Editor.');
+                        alert('DATABASE ERROR:\nCode: ' + error.code + '\nMessage: ' + error.message + '\nDetails: ' + error.details + '\n\nHint: ' + error.hint);
                     } else {
                         if (container.innerHTML.includes('SBI - ****1234')) {
                             container.innerHTML = '';
@@ -272,7 +283,7 @@
                         alert('Account added successfully!');
                     }
                 } catch (err) {
-                    alert('Unexpected error: ' + err.message);
+                    alert('UNEXPECTED EXCEPTION:\n' + err.message + '\n\nStack: ' + err.stack);
                 } finally {
                     saveBtn.innerHTML = 'Save';
                     saveBtn.disabled = false;
