@@ -1,5 +1,9 @@
 # 🏦 NeoBank – Digital Banking Web Application
 
+> 🤖 **Built with the assistance of [Antigravity](https://antigravity.google)** — an AI coding assistant by Google DeepMind.
+
+---
+
 ## 📌 Overview
 
 **NeoBank** is a **full-featured digital banking web application** built using **HTML, CSS, and Vanilla JavaScript** with **Supabase** as the backend.
