@@ -50,45 +50,42 @@ function displayUserProfile(user) {
 // Expose globally so pages can manually trigger it
 window.displayUserProfile = displayUserProfile;
 
-/**
- * Robust Logout Function
- * Clears local state and redirects to login page.
- */
 async function logout(e) {
     if (e && e.preventDefault) e.preventDefault();
     console.log("Logout initiated...");
 
-    try {
-        // 1. Attempt Supabase sign out (may fail if offline/invalid session)
-        if (window.supabase) {
-            // We don't await this so it doesn't block redirection if the network is slow
-            window.supabaseClient.auth.signOut().catch(err => console.warn('Supabase signOut error:', err));
-        }
-    } catch (err) {
-        console.warn('Logout check error:', err);
-    }
+    // Show visual processing state if clicked via button
+    const btn = e && e.currentTarget ? e.currentTarget : null;
+    if (btn && btn.tagName === 'BUTTON') btn.innerHTML = 'Logging out...';
 
-    // 2. FORCE clear local state regardless of Supabase response
+    // 1. Wipe local state aggressively FIRST
     window.currentUser = null;
-    
-    // Clear all Supabase-related keys from localStorage
     try {
         Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('sb-') || key.includes('supabase')) {
+            if (key.startsWith('sb-') || key.includes('supabase') || key.includes('neobank')) {
                 localStorage.removeItem(key);
             }
         });
     } catch (err) {
-        console.error("Local storage clear error:", err);
+        console.warn("Storage wipe error:", err);
     }
 
-    // 3. Clear our app-specific keys
-    localStorage.removeItem('neobank_logged_in'); 
+    // 2. Race the network response so we never hang the UI
+    if (window.supabase) {
+        try {
+            await Promise.race([
+                window.supabaseClient.auth.signOut(),
+                new Promise(res => setTimeout(res, 800)) // Max wait 800ms
+            ]);
+        } catch (err) {
+            console.warn("Signout disconnect:", err);
+        }
+    }
 
-    console.log("Local state cleared. Redirecting to login page...");
-    
-    // 4. Redirect to the specified site
-    window.location.href = 'https://thoratsoham.github.io/BG-132/';
+    console.log("State destroyed. Redirection triggering.");
+
+    // 3. Navigate strictly relative to prevent local-to-prod redirect hijacking
+    window.location.replace('index.html');
 }
 
 // Map globally and on window for maximum compatibility with onclick handlers
