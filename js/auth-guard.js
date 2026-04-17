@@ -57,40 +57,35 @@ function displayUserProfile(user) {
 window.displayUserProfile = displayUserProfile;
 
 async function logout(e) {
-    // 1. Prevent default action if event is provided or globally available
-    const ev = e || window.event;
-    if (ev && ev.preventDefault) ev.preventDefault();
-
-    console.log("Logout initiated...");
-
-    // Show visual processing state if clicked via button
-    const btn = ev && ev.currentTarget ? ev.currentTarget : null;
-    if (btn && btn.tagName === 'BUTTON') btn.innerHTML = 'Logging out...';
-
-    // 2. Wipe local state aggressively FIRST
-    window.currentUser = null;
     try {
+        const ev = e || window.event;
+        if (ev && ev.preventDefault) ev.preventDefault();
+
+        console.log("Logout initiated...");
+        const btn = ev && ev.currentTarget ? ev.currentTarget : null;
+        if (btn && btn.tagName === 'BUTTON') btn.innerHTML = 'Logging out...';
+
+        window.currentUser = null;
+
+        // Fully wipe all state except theme to ensure fresh start
         Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('sb-') || key.includes('supabase') || key.includes('neobank')) {
+            if (key !== 'theme' && key !== 'neobank_linked_accounts') {
                 localStorage.removeItem(key);
             }
         });
-        Object.keys(sessionStorage).forEach(key => {
-            sessionStorage.removeItem(key);
-        });
+        sessionStorage.clear();
+
+        if (window.supabaseClient && window.supabaseClient.auth) {
+            await Promise.race([
+                window.supabaseClient.auth.signOut(),
+                new Promise(r => setTimeout(r, 1000))
+            ]);
+        }
     } catch (err) {
-        console.warn("Storage wipe error:", err);
+        console.error("Logout flow error:", err);
+    } finally {
+        window.location.replace('index.html');
     }
-
-    // 3. Trigger network signout cleanly and wait for it
-    if (window.supabaseClient && window.supabaseClient.auth) {
-        await window.supabaseClient.auth.signOut().catch(err => console.warn("Signout disconnect error:", err));
-    }
-
-    console.log("State destroyed. Redirection triggering.");
-
-    // 4. Force immediate navigation to root/index
-    window.location.href = 'index.html';
 }
 
 // Map globally and on window for maximum compatibility with onclick handlers
