@@ -17,6 +17,7 @@ async function checkAuth() {
     }
 
     if (session) {
+        window.currentUser = session.user;
         displayUserProfile(session.user);
     }
 }

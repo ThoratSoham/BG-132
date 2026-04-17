@@ -251,16 +251,17 @@
                 saveBtn.disabled = true;
                 
                 try {
-                    const { data: { session }, error: sessionError } = await client.auth.getSession();
+                    // Fail-safe: Check the global user first, then try the SDK if missing
+                    const user = window.currentUser || (await client.auth.getSession())?.data?.session?.user;
                     
-                    if (sessionError || !session) {
-                         if(window.showToast) window.showToast('Authentication error: Session not found', 'error');
+                    if (!user) {
+                         if(window.showToast) window.showToast('Authentication error: User not found. Please refresh.', 'error');
                          return;
                     }
                     
                     const { data, error } = await client
                         .from('linked_accounts')
-                        .insert([{ user_id: session.user.id, bank_name: bankName, account_number: accNum }])
+                        .insert([{ user_id: user.id, bank_name: bankName, account_number: accNum }])
                         .select();
                         
                     if (error) {
