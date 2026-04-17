@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,15 +29,33 @@
         .balance-card::after {
             content: '';
             position: absolute;
-            top: -50%; right: -20%;
-            width: 300px; height: 300px;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
         }
 
-        .balance-title { font-size: 1rem; font-weight: 500; opacity: 0.9; margin-bottom: 0.5rem; }
-        .balance-amount { font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem; }
-        .balance-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; }
+        .balance-title {
+            font-size: 1rem;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .balance-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+        }
 
         .quick-actions {
             display: grid;
@@ -62,53 +81,102 @@
             background: var(--surface-highlight);
             transform: translateY(-2px);
         }
-        
+
         .action-icon {
-            width: 48px; height: 48px;
+            width: 48px;
+            height: 48px;
             border-radius: 12px;
             background: rgba(99, 102, 241, 0.15);
             color: var(--primary-color);
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .section-title {
-            font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;
-            display: flex; justify-content: space-between; align-items: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .section-title a { font-size: 0.875rem; font-weight: 500; }
+        .section-title a {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
 
-        .txn-list { display: flex; flex-direction: column; gap: 0.75rem; }
-        
+        .txn-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
         .txn-item {
-            display: flex; justify-content: space-between; align-items: center;
-            background: var(--bg-dark); padding: 1rem;
-            border: 1px solid var(--surface-border); border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-dark);
+            padding: 1rem;
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
         }
-        
-        .txn-info { display: flex; align-items: center; gap: 1rem; }
+
+        .txn-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
         .txn-icon {
-            width: 40px; height: 40px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .txn-icon.debit { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-        .txn-icon.credit { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-        
-        .txn-details h4 { margin-bottom: 0.25rem; font-size: 1rem; font-weight: 500; }
-        .txn-details p { font-size: 0.75rem; color: var(--text-muted); }
+
+        .txn-icon.debit {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .txn-icon.credit {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .txn-details h4 {
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .txn-details p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
 
         .widget {
-            background: var(--surface-dark); border: 1px solid var(--surface-border);
-            border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;
+            background: var(--surface-dark);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         @media (max-width: 900px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/auth-guard.js"></script>
 </head>
+
 <body>
 
     <div class="app-container">
@@ -123,7 +191,8 @@
                 <li><a href="cards.html"><i data-lucide="credit-card"></i> Cards</a></li>
                 <li><a href="payments.html"><i data-lucide="send"></i> Payments</a></li>
                 <li><a href="profile.html"><i data-lucide="user"></i> Profile</a></li>
-                <li style="margin-top: 2rem;"><a href="#" onclick="logout()"><i data-lucide="log-out"></i> Logout</a></li>
+                <li style="margin-top: 2rem;"><a href="#" onclick="logout()"><i data-lucide="log-out"></i> Logout</a>
+                </li>
             </ul>
         </aside>
 
@@ -135,12 +204,15 @@
                 </button>
                 <h1 class="page-title fade-in">Dashboard</h1>
                 <div class="user-quick-profile fade-in">
-                    <a href="notifications.html" style="position:relative; margin-right: 1rem; color: var(--text-muted); cursor: pointer; display: flex; align-items: center;">
+                    <a href="notifications.html"
+                        style="position:relative; margin-right: 1rem; color: var(--text-muted); cursor: pointer; display: flex; align-items: center;">
                         <i data-lucide="bell"></i>
-                        <span style="position:absolute; top:-2px; right:-2px; background:var(--danger); width:8px; height:8px; border-radius:50%;"></span>
+                        <span
+                            style="position:absolute; top:-2px; right:-2px; background:var(--danger); width:8px; height:8px; border-radius:50%;"></span>
                     </a>
                     <span id="header-welcome">Hello, John</span>
-                    <div class="avatar" id="header-avatar" onclick="window.location.href='profile.html'" style="cursor: pointer;">JD</div>
+                    <div class="avatar" id="header-avatar" onclick="window.location.href='profile.html'"
+                        style="cursor: pointer;">JD</div>
                 </div>
             </header>
 
@@ -151,7 +223,8 @@
                     <div class="balance-card">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div class="balance-title">Total Balance</div>
-                            <button id="toggle-balance" style="background:transparent; border:none; color:white; cursor:pointer; opacity:0.8;">
+                            <button id="toggle-balance"
+                                style="background:transparent; border:none; color:white; cursor:pointer; opacity:0.8;">
                                 <i data-lucide="eye"></i>
                             </button>
                         </div>
@@ -200,7 +273,8 @@
                                         <p>Mar 31, 09:00 AM</p>
                                     </div>
                                 </div>
-                                <div class="txn-amount" style="color: var(--success); font-weight: 600;">+$4,500.00</div>
+                                <div class="txn-amount" style="color: var(--success); font-weight: 600;">+$4,500.00
+                                </div>
                             </div>
                             <div class="txn-item">
                                 <div class="txn-info">
@@ -220,11 +294,13 @@
                 <div class="fade-in" style="animation-delay: 0.1s;">
                     <!-- Notifications -->
                     <div class="widget">
-                        <h3 class="section-title">Recent Alerts <a href="notifications.html" style="font-size: 0.75rem;"><i data-lucide="bell"></i></a></h3>
+                        <h3 class="section-title">Recent Alerts <a href="notifications.html"
+                                style="font-size: 0.75rem;"><i data-lucide="bell"></i></a></h3>
                         <div class="txn-list" id="db-notifications" style="gap: 1rem;">
                             <div class="txn-item" style="border: none; padding: 0.5rem 0;">
                                 <div class="txn-info">
-                                    <div class="txn-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary-color);">
+                                    <div class="txn-icon"
+                                        style="background: rgba(99, 102, 241, 0.1); color: var(--primary-color);">
                                         <i data-lucide="shield"></i>
                                     </div>
                                     <div class="txn-details">
@@ -250,7 +326,8 @@
                     <!-- Quick Stat -->
                     <div class="widget">
                         <h3 class="section-title">Monthly Spend</h3>
-                        <div style="width: 100%; aspect-ratio: 1; display:flex; justify-content:center; align-items:center;">
+                        <div
+                            style="width: 100%; aspect-ratio: 1; display:flex; justify-content:center; align-items:center;">
                             <canvas id="spendChart"></canvas>
                         </div>
                     </div>
@@ -262,7 +339,7 @@
     <script src="js/app.js"></script>
     <script>
         lucide.createIcons();
-        
+
         // Static Chart Initialization
         const ctx = document.getElementById('spendChart').getContext('2d');
         new Chart(ctx, {
@@ -287,4 +364,5 @@
 
     </script>
 </body>
+
 </html>
