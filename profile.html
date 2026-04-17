@@ -164,6 +164,16 @@
         document.addEventListener('DOMContentLoaded', () => {
             if(window.lucide) window.lucide.createIcons();
 
+            // Render real user info — poll briefly in case auth-guard is still resolving
+            const tryRenderUser = () => {
+                if (window.currentUser && window.displayUserProfile) {
+                    window.displayUserProfile(window.currentUser);
+                } else {
+                    setTimeout(tryRenderUser, 150);
+                }
+            };
+            tryRenderUser();
+
             const themeSelector = document.getElementById('theme-selector');
             if(themeSelector) {
                 themeSelector.value = localStorage.getItem('theme') || 'dark';

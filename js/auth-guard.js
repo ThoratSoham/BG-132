@@ -27,23 +27,28 @@ function displayUserProfile(user) {
     const profName = document.getElementById('prof-name');
     const profEmail = document.getElementById('prof-email');
     const profAvatar = document.getElementById('prof-avatar');
+    const profPhone = document.getElementById('prof-phone');
     
     // 2. Update Header (Dashboard, etc)
     const headerWelcome = document.getElementById('header-welcome');
     const headerAvatar = document.getElementById('header-avatar');
 
     // Extract name from email or metadata
-    const userEmail = user.email;
-    const displayName = user.user_metadata?.full_name || userEmail.split('@')[0];
+    const userEmail = user.email || '';
+    const displayName = user.user_metadata?.full_name || user.user_metadata?.name || userEmail.split('@')[0] || 'User';
     const initials = displayName.substring(0, 2).toUpperCase();
 
     if (profName) profName.textContent = displayName;
     if (profEmail) profEmail.textContent = userEmail;
     if (profAvatar) profAvatar.textContent = initials;
+    if (profPhone) profPhone.style.display = 'none'; // hide hardcoded phone
 
     if (headerWelcome) headerWelcome.textContent = `Hello, ${displayName.split(' ')[0]}`;
     if (headerAvatar) headerAvatar.textContent = initials;
 }
+
+// Expose globally so pages can manually trigger it
+window.displayUserProfile = displayUserProfile;
 
 // Redirect logout globally
 window.logout = async function() {
