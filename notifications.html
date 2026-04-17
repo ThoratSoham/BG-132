@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth-guard.js"></script>
 </head>
 <body>
 
@@ -69,7 +71,7 @@
         window.clearNotifications = function() {
             document.getElementById('notifs-container').innerHTML = '<div style="padding: 3rem; text-align: center; color: var(--text-muted);">You have no new notifications.</div>';
         };
-        function logout() { window.location.href = 'index.html'; }
+
     </script>
 </body>
 </html>

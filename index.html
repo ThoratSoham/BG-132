@@ -81,6 +81,8 @@
             font-weight: 600;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth-guard.js"></script>
 </head>
 <body>
 
@@ -118,6 +120,61 @@
 
     <script>
         lucide.createIcons();
+
+        const loginForm = document.getElementById('login-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            const btn = loginForm.querySelector('button[type="submit"]');
+
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = 'Signing in...';
+            btn.disabled = true;
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+
+            if (error) {
+                alert('Login failed: ' + error.message);
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            } else {
+                // Success
+                window.location.href = 'dashboard.html';
+            }
+        });
+        
+        // Basic toggle between Sign In and Sign Up (for UI functionality)
+        const signupPrompt = document.getElementById('signup-prompt');
+        let isSignup = false;
+        
+        signupPrompt.querySelector('a').addEventListener('click', () => {
+            isSignup = !isSignup;
+            const headerTitle = document.querySelector('.auth-header p');
+            const submitBtn = document.querySelector('#login-form button');
+            
+            if (isSignup) {
+                headerTitle.textContent = 'Create a new account';
+                submitBtn.innerHTML = 'Sign Up <i data-lucide="arrow-right"></i>';
+                signupPrompt.innerHTML = 'Already have an account? <a>Log in</a>';
+            } else {
+                headerTitle.textContent = 'Secure access to your finances';
+                submitBtn.innerHTML = 'Continue <i data-lucide="arrow-right"></i>';
+                signupPrompt.innerHTML = 'New here? <a>Create an account</a>';
+            }
+            lucide.createIcons();
+            
+            // Re-bind the toggle event listener
+            signupPrompt.querySelector('a').addEventListener('click', arguments.callee);
+        });
+
     </script>
 </body>
 </html>
