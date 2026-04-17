@@ -50,24 +50,43 @@ function displayUserProfile(user) {
 // Expose globally so pages can manually trigger it
 window.displayUserProfile = displayUserProfile;
 
-// Redirect logout globally
-window.logout = async function() {
+// Define logout globally so it can be called from onclick="logout()"
+async function logout() {
+    console.log("Logout initiated...");
     try {
-        await supabase.auth.signOut();
-    } catch(e) {
-        // Ignore network errors — we still want to log out locally
-        console.warn('signOut network error (ignored):', e);
-    }
-    // Always clear local state regardless
-    window.currentUser = null;
-    // Clear any Supabase session keys from localStorage
-    Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('sb-') || key.includes('supabase')) {
-            localStorage.removeItem(key);
+        // 1. Attempt Supabase sign out (may fail if offline/invalid session)
+        if (window.supabase) {
+            await window.supabaseClient.auth.signOut();
         }
-    });
+    } catch (e) {
+        console.warn('Supabase signOut error (ignoring):', e);
+    }
+
+    // 2. FORCE clear local state regardless of Supabase response
+    window.currentUser = null;
+    
+    // Clear all Supabase-related keys from localStorage
+    try {
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('sb-') || key.includes('supabase')) {
+                localStorage.removeItem(key);
+            }
+        });
+    } catch (e) {
+        console.error("Local storage clear error:", e);
+    }
+
+    // 3. Clear our app-specific keys just in case
+    localStorage.removeItem('neobank_logged_in'); 
+
+    console.log("Local state cleared. Redirecting...");
+    
+    // 4. Redirect to login page
     window.location.href = 'index.html';
-};
+}
+
+// Map both for compatibility
+window.logout = logout;
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
