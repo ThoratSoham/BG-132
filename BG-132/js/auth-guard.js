@@ -35,7 +35,7 @@ window.logout = async function(event) {
         localStorage.setItem('theme', theme);
     }
     
-    window.location.href = 'index.html';
+    window.location.href = 'https://thoratsoham.github.io/BG-132';
 };
 
 document.addEventListener('DOMContentLoaded', () => {
